@@ -1,0 +1,21 @@
+body {
+    background: #efefef;
+}
+
+@media screen and (min-width: 1024px) {
+    .layout {
+        display: grid;
+        grid-template-columns: 2fr 8fr;
+    }
+
+    .sidebar {
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+}
+    
+
+.main iframe {
+    width: 100%;
+    min-height: 100vh;
+}

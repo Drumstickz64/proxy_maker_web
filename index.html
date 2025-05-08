@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/node_modules/bulma/css/bulma.min.css">
+    <link rel="stylesheet" href="/src/style.css">
+    <title>Proxy Maker</title>
+  </head>
+  <body>
+    <div class="layout">
+      <div class="sidebar p-4 has-background-white">
+        <form id="data-form">
+          <div class="file">
+            <label for="files-input" class="file-label">
+              <input name="files-input" id="files-input" class="file-input" type="file" name="files-input" required multiple />
+              <span class="file-cta">
+                <span class="file-label"> Upload image files <span class="ml-1">(JPEG or PNG)</span> </span>
+              </span>
+            </label>
+          </div>
+    
+          <div class="field">
+            <label class="label" for="column-number-input">Number of Columns</label>
+            <div class="control">
+              <input class="input" required type="number" name="column-number-input" id="column-number-input" step="1" min="1" value="4">
+            </div>
+          </div>
+    
+          <div class="field">
+            <label class="label" for="row-number-input">Number of Rows</label>
+            <div class="control">
+              <input class="input" required type="number" name="row-number-input" id="row-number-input" step="1" min="1" value="2">
+            </div>
+          </div>
+    
+          <div class="field">
+            <label class="label" for="horizontal-gap-input">Horizontal Gap <span class="has-text-grey is-size-7 has-text-weight-medium">(Millimeters)</span></label>
+            <div class="control">
+              <input class="input" required type="number" name="horizontal-gap-input" id="horizontal-gap-input" step="0.01" min="0" value="3">
+            </div>
+          </div>
+          
+          <div class="field">
+            <label class="label" for="vertical-gap-input">Vertical Gap <span class="has-text-grey is-size-7 has-text-weight-medium">(Millimeters)</span></label>
+            <div class="control">
+              <input class="input" required type="number" name="vertical-gap-input" id="vertical-gap-input" step="0.01" min="0" value="3">
+            </div>
+          </div>
+    
+          <div class="field">
+            <label class="label" for="min-horizontal-margin-input">Minimum Horizontal Margin <span class="has-text-grey is-size-7 has-text-weight-medium">(Millimeters)</span></label>
+            <div class="control">
+              <input class="input" required type="number" name="min-horizontal-margin-input" id="min-horizontal-margin-input" step="0.01" min="0" value="0">
+            </div>
+          </div>
+    
+          <div class="field">
+            <label class="label" for="min-vertical-margin-input">Minimum Vertical Margin <span class="has-text-grey is-size-7 has-text-weight-medium">(Millimeters)</span></label>
+            <div class="control">
+              <input class="input" required type="number" name="min-vertical-margin-input" id="min-vertical-margin-input" step="0.01" min="0" value="0">
+            </div>
+          </div>
+    
+          <div class="field is-grouped is-grouped-centered">
+            <div class="control center">
+              <button class="button is-primary">Generate</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <main class="main">
+        <iframe id="output-frame" src="/src/vendor/pdfjs/web/viewer.html?file" frameborder="0" title="Proxy PDF Viewer"></iframe>
+      </main>
+    </div>
+
+    <script type="module" src="/src/vendor/pdfjs/build/pdf.mjs"></script>
+    <script type="module">
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/src/vendor/pdfjs/build/pdf.worker.mjs';
+    </script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
