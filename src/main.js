@@ -1,5 +1,7 @@
-// import * as pdfjsLib from "./vendor/pdfjs/";
 import { generateProxy } from "./pdfGen";
+// import * as pdfjsLib from "/vendor/pdfjs/build/pdf.mjs";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/build/pdf.worker.mjs";
 
 const dataForm = document.querySelector("#data-form");
 const outputFrame = document.querySelector("#output-frame");
@@ -57,5 +59,5 @@ dataForm.addEventListener("submit", async (e) => {
 async function displayPdf(data) {
   const blob = new Blob([data], { type: "application/pdf" });
   let url = URL.createObjectURL(blob);
-  outputFrame.src = `/src/vendor/pdfjs/web/viewer.html?file=${url}`;
+  outputFrame.src = `/vendor/pdfjs/web/viewer.html?file=${url}`;
 }

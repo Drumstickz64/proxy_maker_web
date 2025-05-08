@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/node_modules/bulma/css/bulma.min.css">
     <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/vendor/pdfjs/build/pdf.mjs"></script>
+    <script type="module" defer src="/src/main.js"></script>
     <title>Proxy Maker</title>
   </head>
   <body>
@@ -71,14 +73,8 @@
       </div>
 
       <main class="main">
-        <iframe id="output-frame" src="/src/vendor/pdfjs/web/viewer.html?file" frameborder="0" title="Proxy PDF Viewer"></iframe>
+        <iframe id="output-frame" src="/vendor/pdfjs/web/viewer.html?file" frameborder="0" title="Proxy PDF Viewer"></iframe>
       </main>
     </div>
-
-    <script type="module" src="/src/vendor/pdfjs/build/pdf.mjs"></script>
-    <script type="module">
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/src/vendor/pdfjs/build/pdf.worker.mjs';
-    </script>
-    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
