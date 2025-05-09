@@ -5,8 +5,22 @@ const TYPICAL_CARD_HEIGHT = mmToPx(86);
 const PAGE_SIZE = portraitToLandscape(PageSizes.A4);
 const [PAGE_WIDTH, PAGE_HEIGHT] = PAGE_SIZE;
 
+export const defaultArgs = {
+  numCols: 4,
+  numRows: 2,
+  horizontalGap: 3,
+  verticalGap: 3,
+  minHorizontalMargin: 0,
+  minVerticalMargin: 0,
+};
+
 export async function generateProxy(images, args) {
   const pdfDoc = await PDFDocument.create();
+
+  const horizontalGapPx = mmToPx(args.horizontalGap);
+  const verticalGapPx = mmToPx(args.verticalGap);
+  const minHorizontalMarginPx = mmToPx(args.minHorizontalMargin);
+  const minVerticalMarginPx = mmToPx(args.minVerticalMargin);
 
   const imageObjs = await Promise.all(
     images.map(async (image) => {
@@ -23,15 +37,15 @@ export async function generateProxy(images, args) {
 
   const maxCardWidth = calcCardDim(
     PAGE_WIDTH,
-    args.minHorizontalMargin,
+    minHorizontalMarginPx,
     args.numCols,
-    args.horizontalGap
+    horizontalGapPx
   );
   const maxCardHeight = calcCardDim(
     PAGE_HEIGHT,
-    args.minVerticalMargin,
+    minVerticalMarginPx,
     args.numRows,
-    args.verticalGap
+    verticalGapPx
   );
 
   // There is a method `PDFImage.scaleToFit` that does a similar thing to this
@@ -53,13 +67,13 @@ export async function generateProxy(images, args) {
     cardWidth,
     PAGE_WIDTH,
     args.numCols,
-    args.horizontalGap
+    horizontalGapPx
   );
   const verticalMargin = calcActualMarginSize(
     cardHeight,
     PAGE_HEIGHT,
     args.numRows,
-    args.verticalGap
+    verticalGapPx
   );
 
   const numPages = imageObjs.length / (args.numCols * args.numRows);
@@ -77,8 +91,8 @@ export async function generateProxy(images, args) {
         }
         const imageObj = imageObjs[imageIndex];
         page.drawImage(imageObj, {
-          x: horizontalMargin / 2 + col * (cardWidth + args.horizontalGap),
-          y: verticalMargin / 2 + row * (cardHeight + args.verticalGap),
+          x: horizontalMargin / 2 + col * (cardWidth + horizontalGapPx),
+          y: verticalMargin / 2 + row * (cardHeight + verticalGapPx),
           width: cardWidth,
           height: cardHeight,
         });

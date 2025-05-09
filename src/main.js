@@ -1,5 +1,4 @@
 import { generateProxy } from "./pdfGen";
-// import * as pdfjsLib from "/vendor/pdfjs/build/pdf.mjs";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/build/pdf.worker.mjs";
 
