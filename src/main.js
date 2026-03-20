@@ -5,27 +5,35 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/build/pdf.worker.mjs";
 const dataForm = document.querySelector("#data-form");
 const outputFrame = document.querySelector("#output-frame");
 
+const repeatRegex = /\[(\d+)\](?=\.[^.]+$)/;
+
 dataForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const files = dataForm.querySelector("#files-input").files;
   const formData = {
+    cardWidth: parseFloat(dataForm.querySelector("#card-width-input").value),
+    cardHeight: parseFloat(dataForm.querySelector("#card-height-input").value),
+    pageSize: dataForm.querySelector("#page-size-input").value,
+    pageOrientation: dataForm.querySelector("#page-orientation-input").value,
     numCols: parseInt(dataForm.querySelector("#column-number-input").value),
     numRows: parseInt(dataForm.querySelector("#row-number-input").value),
-    horizontalGap: parseInt(
-      dataForm.querySelector("#horizontal-gap-input").value
+    horizontalGap: parseFloat(
+      dataForm.querySelector("#horizontal-gap-input").value,
     ),
-    verticalGap: parseInt(dataForm.querySelector("#vertical-gap-input").value),
-    minHorizontalMargin: parseInt(
-      dataForm.querySelector("#min-horizontal-margin-input").value
+    verticalGap: parseFloat(
+      dataForm.querySelector("#vertical-gap-input").value,
     ),
-    minVerticalMargin: parseInt(
-      dataForm.querySelector("#min-vertical-margin-input").value
+    minHorizontalMargin: parseFloat(
+      dataForm.querySelector("#min-horizontal-margin-input").value,
+    ),
+    minVerticalMargin: parseFloat(
+      dataForm.querySelector("#min-vertical-margin-input").value,
     ),
   };
 
   const contentPromises = [];
-  const types = [];
+  const metadata = [];
   for (const file of files) {
     let type;
     switch (file.type) {
@@ -40,13 +48,22 @@ dataForm.addEventListener("submit", async (e) => {
         break;
     }
 
-    types.push(type);
+    metadata.push({ type, name: file.name });
     contentPromises.push(file.arrayBuffer());
   }
 
   const allFilesBytes = await Promise.all(contentPromises);
-  const images = allFilesBytes.map((bytes, i) => {
-    return { bytes, type: types[i] };
+  const images = allFilesBytes.flatMap((bytes, i) => {
+    const obj = { bytes, type: metadata[i].type };
+
+    const match = metadata[i].name.match(repeatRegex);
+
+    let repeat = 1;
+    if (match && match[1]) {
+      repeat = parseInt(match[1], 10);
+    }
+
+    return Array(repeat).fill(obj);
   });
 
   const proxy = await generateProxy(images, formData);

@@ -1,11 +1,10 @@
 import { PageSizes, PDFDocument } from "pdf-lib";
 
-const TYPICAL_CARD_WIDTH = mmToPx(59);
-const TYPICAL_CARD_HEIGHT = mmToPx(86);
-const PAGE_SIZE = portraitToLandscape(PageSizes.A4);
-const [PAGE_WIDTH, PAGE_HEIGHT] = PAGE_SIZE;
-
 export const defaultArgs = {
+  cardWidth: 59,
+  cardHeight: 86,
+  pageSize: "A4",
+  pageOrientation: "landscape",
   numCols: 4,
   numRows: 2,
   horizontalGap: 3,
@@ -16,6 +15,15 @@ export const defaultArgs = {
 
 export async function generateProxy(images, args) {
   const pdfDoc = await PDFDocument.create();
+
+  const cardWidthTypicalPx = mmToPx(args.cardWidth);
+  const cardHeightTypicalPx = mmToPx(args.cardHeight);
+
+  let pageSize = PageSizes[args.pageSize];
+  if (args.pageOrientation === "landscape") {
+    pageSize = portraitToLandscape(pageSize);
+  }
+  const [pageWidth, pageHeight] = pageSize;
 
   const horizontalGapPx = mmToPx(args.horizontalGap);
   const verticalGapPx = mmToPx(args.verticalGap);
@@ -36,13 +44,13 @@ export async function generateProxy(images, args) {
   );
 
   const maxCardWidth = calcCardDim(
-    PAGE_WIDTH,
+    pageWidth,
     minHorizontalMarginPx,
     args.numCols,
     horizontalGapPx
   );
   const maxCardHeight = calcCardDim(
-    PAGE_HEIGHT,
+    pageHeight,
     minVerticalMarginPx,
     args.numRows,
     verticalGapPx
@@ -50,28 +58,28 @@ export async function generateProxy(images, args) {
 
   // There is a method `PDFImage.scaleToFit` that does a similar thing to this
   // but uses actual dimensions of the image instead of the dimensions
-  // of a typical Yu-Gi-Oh card
+  // of a typical card
   //
   // A method that uses scaleToFit would (I assume) have a messed up layout if
   // any of the images had a different aspect-ratio than the others
   //
   // Where as this method would distort the image to keep the layout consistent
-  const cardWidthScale = maxCardWidth / TYPICAL_CARD_WIDTH;
-  const cardHeightScale = maxCardHeight / TYPICAL_CARD_HEIGHT;
+  const cardWidthScale = maxCardWidth / cardWidthTypicalPx;
+  const cardHeightScale = maxCardHeight / cardHeightTypicalPx;
   const cardScale = Math.min(cardWidthScale, cardHeightScale);
 
-  let cardWidth = TYPICAL_CARD_WIDTH * cardScale;
-  let cardHeight = TYPICAL_CARD_HEIGHT * cardScale;
+  let cardWidth = cardWidthTypicalPx * cardScale;
+  let cardHeight = cardHeightTypicalPx * cardScale;
 
   const horizontalMargin = calcActualMarginSize(
     cardWidth,
-    PAGE_WIDTH,
+    pageWidth,
     args.numCols,
     horizontalGapPx
   );
   const verticalMargin = calcActualMarginSize(
     cardHeight,
-    PAGE_HEIGHT,
+    pageHeight,
     args.numRows,
     verticalGapPx
   );
@@ -79,7 +87,7 @@ export async function generateProxy(images, args) {
   const numPages = imageObjs.length / (args.numCols * args.numRows);
 
   pageLoop: for (let pageIndex = 0; pageIndex < numPages; pageIndex++) {
-    const page = pdfDoc.addPage(PAGE_SIZE);
+    const page = pdfDoc.addPage(pageSize);
 
     for (let row = 0; row < args.numRows; row++) {
       for (let col = 0; col < args.numCols; col++) {
