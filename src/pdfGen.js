@@ -13,7 +13,8 @@ export const defaultArgs = {
   minVerticalMargin: 0,
 };
 
-export async function generateProxy(images, args) {
+export async function generateProxy(images, args, backfaceImage = null) {
+  console.log(backfaceImage);
   const pdfDoc = await PDFDocument.create();
 
   const cardWidthTypicalPx = mmToPx(args.cardWidth);
@@ -31,29 +32,23 @@ export async function generateProxy(images, args) {
   const minVerticalMarginPx = mmToPx(args.minVerticalMargin);
 
   const imageObjs = await Promise.all(
-    images.map(async (image) => {
-      switch (image.type) {
-        case "JPEG":
-          return pdfDoc.embedJpg(image.bytes);
-        case "PNG":
-          return pdfDoc.embedPng(image.bytes);
-        default:
-          throw new Error("UNREACHABLE");
-      }
-    })
+    images.map(async (image) => await embedImage(pdfDoc, image)),
   );
+  const backfaceImageObj = backfaceImage
+    ? await embedImage(pdfDoc, backfaceImage)
+    : null;
 
   const maxCardWidth = calcCardDim(
     pageWidth,
     minHorizontalMarginPx,
     args.numCols,
-    horizontalGapPx
+    horizontalGapPx,
   );
   const maxCardHeight = calcCardDim(
     pageHeight,
     minVerticalMarginPx,
     args.numRows,
-    verticalGapPx
+    verticalGapPx,
   );
 
   // There is a method `PDFImage.scaleToFit` that does a similar thing to this
@@ -75,19 +70,20 @@ export async function generateProxy(images, args) {
     cardWidth,
     pageWidth,
     args.numCols,
-    horizontalGapPx
+    horizontalGapPx,
   );
   const verticalMargin = calcActualMarginSize(
     cardHeight,
     pageHeight,
     args.numRows,
-    verticalGapPx
+    verticalGapPx,
   );
 
   const numPages = imageObjs.length / (args.numCols * args.numRows);
 
   pageLoop: for (let pageIndex = 0; pageIndex < numPages; pageIndex++) {
     const page = pdfDoc.addPage(pageSize);
+    const backPage = backfaceImageObj ? pdfDoc.addPage(pageSize) : null;
 
     for (let row = 0; row < args.numRows; row++) {
       for (let col = 0; col < args.numCols; col++) {
@@ -98,17 +94,33 @@ export async function generateProxy(images, args) {
           break pageLoop;
         }
         const imageObj = imageObjs[imageIndex];
-        page.drawImage(imageObj, {
+        const cardOptions = {
           x: horizontalMargin / 2 + col * (cardWidth + horizontalGapPx),
           y: verticalMargin / 2 + row * (cardHeight + verticalGapPx),
           width: cardWidth,
           height: cardHeight,
-        });
+        };
+
+        page.drawImage(imageObj, cardOptions);
+        if (backPage) {
+          backPage.drawImage(backfaceImageObj, cardOptions);
+        }
       }
     }
   }
 
   return pdfDoc;
+}
+
+async function embedImage(pdfDoc, image) {
+  switch (image.type) {
+    case "JPEG":
+      return pdfDoc.embedJpg(image.bytes);
+    case "PNG":
+      return pdfDoc.embedPng(image.bytes);
+    default:
+      throw new Error("UNREACHABLE");
+  }
 }
 
 function calcCardDim(totalSize, margin, numItems, gapSize) {

@@ -11,6 +11,7 @@ dataForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const files = dataForm.querySelector("#files-input").files;
+  const backfaceFile = dataForm.querySelector("#backface-input").files[0];
   const formData = {
     cardWidth: parseFloat(dataForm.querySelector("#card-width-input").value),
     cardHeight: parseFloat(dataForm.querySelector("#card-height-input").value),
@@ -32,20 +33,24 @@ dataForm.addEventListener("submit", async (e) => {
     ),
   };
 
+  const getFileType = (file) => {
+    switch (file.type) {
+      case "image/jpeg":
+        return "JPEG";
+      case "image/png":
+        return "PNG";
+      default:
+        return null;
+    }
+  };
+
   const contentPromises = [];
   const metadata = [];
   for (const file of files) {
-    let type;
-    switch (file.type) {
-      case "image/jpeg":
-        type = "JPEG";
-        break;
-      case "image/png":
-        type = "PNG";
-        break;
-      default:
-        console.warn(`unsupported image type '${file.type}', skipping...`);
-        break;
+    const type = getFileType(file);
+    if (!type) {
+      console.warn(`unsupported image type '${file.type}', skipping...`);
+      continue;
     }
 
     metadata.push({ type, name: file.name });
@@ -66,7 +71,20 @@ dataForm.addEventListener("submit", async (e) => {
     return Array(repeat).fill(obj);
   });
 
-  const proxy = await generateProxy(images, formData);
+  let backfaceImage = null;
+  if (backfaceFile) {
+    const type = getFileType(backfaceFile);
+    if (type) {
+      const bytes = await backfaceFile.arrayBuffer();
+      backfaceImage = { bytes, type };
+    } else {
+      console.warn(
+        `unsupported backface image type '${backfaceFile.type}', ignoring...`,
+      );
+    }
+  }
+
+  const proxy = await generateProxy(images, formData, backfaceImage);
   const pdfData = await proxy.save();
 
   await displayPdf(pdfData);
